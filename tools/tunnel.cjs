@@ -1,9 +1,26 @@
 // tools/tunnel.cjs
-const ngrok = require("@ngrok/ngrok");   // ✔ make sure package.json uses @ngrok/ngrok
+const ngrok = require("@ngrok/ngrok"); // ✔ make sure package.json uses @ngrok/ngrok
 const fs = require("fs");
 const path = require("path");
-require('dotenv').config(); // will read NGROK_AUTHTOKEN from a .env file if you prefer
+require("dotenv").config(); // will read NGROK_AUTHTOKEN from a .env file if you prefer
 
+// If the token was previously set at the OS level to a placeholder (for
+// example via `setx`) dotenv will not overwrite it. Try to prefer the
+// project .env value by reading and parsing the .env file and overriding
+// process.env.NGROK_AUTHTOKEN when a valid value is present.
+try {
+  const envPath = path.resolve(process.cwd(), ".env");
+  if (fs.existsSync(envPath)) {
+    const raw = fs.readFileSync(envPath, "utf8");
+    const match = raw.match(/^\s*NGROK_AUTHTOKEN\s*=\s*(.+)\s*$/m);
+    if (match && match[1]) {
+      const parsed = match[1].replace(/^"|"$/g, "").replace(/^'|'$/g, "").trim();
+      if (parsed) process.env.NGROK_AUTHTOKEN = parsed;
+    }
+  }
+} catch (e) {
+  // ignore parsing errors and fall back to existing environment
+}
 
 (async () => {
   try {
@@ -11,7 +28,8 @@ require('dotenv').config(); // will read NGROK_AUTHTOKEN from a .env file if you
     const listener = await ngrok.connect({
       // You can pass a number or a string URL. Both work in v5.
       addr: "http://127.0.0.1:5173",
-      authtoken_from_env:process.env.NGROK_AUTHTOKEN
+      // pass the authtoken value directly
+      authtoken: process.env.NGROK_AUTHTOKEN,
     });
 
     const url = listener.url();
@@ -40,7 +58,6 @@ require('dotenv').config(); // will read NGROK_AUTHTOKEN from a .env file if you
     };
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
-
   } catch (err) {
     console.error("ngrok failed:", err?.message || err);
     process.exit(1);

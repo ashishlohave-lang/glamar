@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n VITE,NGROK -c \"auto\" \"vite\" \"wait-on http://127.0.0.1:5173 && node tools/tunnel.cjs\"",
+    "dev": "concurrently -n VITE,NGROK -c \"auto\" \"vite\" \"wait-on http://127.0.0.1:5173 && node tools/tunnel.cjs || true\"",
     "dev:vite": "vite",
     "dev:tunnel": "node tools/tunnel.cjs",
     "build": "vite build",
@@ -30,5 +30,8 @@
     "ngrok": "^5.0.0-beta.2",
     "vite": "^7.1.7",
     "wait-on": "^9.0.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.52.5"
   }
 }

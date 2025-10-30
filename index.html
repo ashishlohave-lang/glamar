@@ -1,13 +1,74 @@
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GlamAR Demo</title>
-<!-- GlamAR SDK -->
-<script src="https://cdn.glamar.io/sdk/wrapper"></script>
-</head>
-<body>
-<div id="root"></div>
-<script type="module" src="/src/main.jsx"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GlamAR Demo</title>
+    <!-- GlamAR SDK -->
+    <!-- Small development patch: intercept requests to api.pixelbin.io and route them
+		 through the Vite dev-server proxy at /__proxy/pixelbin. Also ensure XHR
+		 doesn't send credentials (withCredentials) to avoid CORS preflight failures
+		 when the API replies with a wildcard origin. This runs only in dev.
+-->
+    <script>
+      (function () {
+        try {
+          const origFetch = window.fetch.bind(window);
+          window.fetch = function (input, init = {}) {
+            try {
+              const url =
+                typeof input === "string" ? input : input && input.url;
+              if (url && url.includes("api.pixelbin.io")) {
+                const newUrl = url.replace(
+                  /^https?:\/\/api\.pixelbin\.io/,
+                  "/__proxy/pixelbin"
+                );
+                if (typeof input === "string") input = newUrl;
+                else input = new Request(newUrl, input);
+                init = Object.assign({ credentials: "omit" }, init || {});
+              }
+            } catch (e) {
+              console.warn("fetch proxy patch error", e);
+            }
+            return origFetch(input, init);
+          };
+
+          const origOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function (
+            method,
+            url /*, ...args */
+          ) {
+            try {
+              if (url && url.includes("api.pixelbin.io")) {
+                url = url.replace(
+                  /^https?:\/\/api\.pixelbin\.io/,
+                  "/__proxy/pixelbin"
+                );
+                arguments[1] = url;
+              }
+            } catch (e) {}
+            return origOpen.apply(this, arguments);
+          };
+
+          // Prevent XHR from sending credentials by forcing withCredentials to false
+          try {
+            Object.defineProperty(XMLHttpRequest.prototype, "withCredentials", {
+              get() {
+                return false;
+              },
+              set() {},
+              configurable: true,
+            });
+          } catch (e) {}
+        } catch (e) {
+          console.warn("dev proxy patch failed", e);
+        }
+      })();
+    </script>
+
+    <script src="https://cdn.glamar.io/sdk/wrapper"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

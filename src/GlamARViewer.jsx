@@ -21,7 +21,14 @@ export default function GlamARViewer() {
       return;
     }
     try {
-      window.GlamAR.init("glamar-container", ACCESS_KEY, {
+      // Provide the ACCESS_KEY inside the options object. Some SDK
+      // versions expect the key in the options (appId/apiKey). Passing the
+      // key as a standalone second argument can be misinterpreted by the
+      // wrapper and lead to requests using 'undefined'. Use a single
+      // options object to be explicit.
+      window.GlamAR.init("glamar-container", {
+        appId: ACCESS_KEY,
+        apiKey: ACCESS_KEY,
         platform: "web",
         meta: { sdkVersion: "2.0.0" }, // <- added meta block
         category: "skinanalysis",
