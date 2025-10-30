@@ -11,7 +11,7 @@ require('dotenv').config(); // will read NGROK_AUTHTOKEN from a .env file if you
     const listener = await ngrok.connect({
       // You can pass a number or a string URL. Both work in v5.
       addr: "http://127.0.0.1:5173",
-      authtoken_from_env:process.env.NGROK_AUTHTOKEN
+      authtoken: process.env.NGROK_AUTHTOKEN
     });
 
     const url = listener.url();

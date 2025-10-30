@@ -4,6 +4,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>GlamAR Demo</title>
 <!-- GlamAR SDK -->
+<!-- Small runtime rewrite: route requests to api.pixelbin.io through local proxy to avoid CORS in dev -->
+<script>
+	(function(){
+		const originProxy = window.location.origin + '/_pixelbin';
+		const origFetch = window.fetch && window.fetch.bind(window);
+		if(origFetch){
+			window.fetch = function(input, init){
+				try{
+					let url = typeof input === 'string' ? input : (input && input.url);
+					if(url && url.startsWith('https://api.pixelbin.io')){
+						const newUrl = url.replace('https://api.pixelbin.io', originProxy);
+						if(typeof input === 'string') input = newUrl;
+						else input = new Request(newUrl, input);
+					}
+				} catch(e){}
+				return origFetch(input, init);
+			};
+		}
+
+		// Patch XHR open to rewrite absolute Pixelbin URLs
+		try{
+			const origOpen = XMLHttpRequest.prototype.open;
+			XMLHttpRequest.prototype.open = function(method, url, async, user, password){
+				if(typeof url === 'string' && url.startsWith('https://api.pixelbin.io')){
+					url = url.replace('https://api.pixelbin.io', originProxy);
+				}
+				return origOpen.call(this, method, url, async, user, password);
+			};
+		} catch(e){}
+	})();
+</script>
 <script src="https://cdn.glamar.io/sdk/wrapper"></script>
 </head>
 <body>
