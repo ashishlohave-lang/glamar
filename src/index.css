@@ -1,0 +1,49 @@
+/* Make page occupy the whole viewport without scrollbars */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+.glamar-root {
+  height: 100dvh; /* supports mobile UI chrome */
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(20,20,20,0.8);
+  backdrop-filter: blur(6px);
+}
+.toolbar h1 { font-size: 16px; margin: 0; }
+.spacer { flex: 1; }
+.btn {
+  border: 1px solid #3a3a3a;
+  background: #111;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.viewer {
+  flex: 1;
+  width: 100%;
+  height: calc(100% - 52px);
+  border-radius: 0;
+  overflow: hidden;
+  background: #000;
+}
+.error {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 10px 12px;
+  background: rgba(200,0,0,0.8);
+  border-radius: 8px;
+  font-size: 13px;
+}
